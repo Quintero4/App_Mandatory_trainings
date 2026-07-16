@@ -1,0 +1,25 @@
+{
+  "lastUpdated": "2026-07-16",
+  "courseList": ["FOD", "ESPACIOS CONFINADOS", "SAFETY CULTURE", "CRISIS MANAGEMENT", "AVIATION SAFETY", "HUMAN FACTORS"],
+  "siglumGroups": {
+    "TAOA": ["TAOAA", "TAOAE", "TAOAF", "TAOAI", "TAOAP", "TAOAT", "TAOAX"]
+  },
+  "employees": [
+    {
+      "employeeId": "123456",
+      "name": "Juan Pérez",
+      "siglum": "TAOAA",
+      "managerName": "María López",
+      "courses": {
+        "FOD": {
+          "initialTraining": { "status": "Completed", "date": "2023-05-10" },
+          "mostRecent": { "status": "Completed", "date": "2024-05-10", "courseName": "FOD Recurrent 2024" }
+        },
+        "SAFETY CULTURE": {
+          "initialTraining": { "status": "Pending", "date": null },
+          "mostRecent": { "status": "Pending", "date": null, "courseName": null }
+        }
+      }
+    }
+  ]
+}

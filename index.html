@@ -1,0 +1,565 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mandatory Trainings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --color-bg: #F1F3F6;
+    --color-surface: #FFFFFF;
+    --color-navy: #10233F;
+    --color-navy-light: #1B3A61;
+    --color-accent: #E08E3E;
+    --color-accent-dark: #C77324;
+    --color-success: #2E8B57;
+    --color-success-bg: #E7F4EC;
+    --color-pending: #B8790C;
+    --color-pending-bg: #FBF0DC;
+    --color-text: #1C2530;
+    --color-text-muted: #667085;
+    --color-border: #E1E5EA;
+    --font-display: 'IBM Plex Sans Condensed', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin: 0;
+    background: var(--color-bg);
+    font-family: var(--font-body);
+    color: var(--color-text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- HEADER ---------- */
+  .app-header{
+    background: linear-gradient(180deg, var(--color-navy) 0%, var(--color-navy-light) 100%);
+    color: #fff;
+    padding: 28px clamp(16px, 4vw, 48px) 22px;
+    position: relative;
+  }
+
+  .app-header::after{
+    content: "";
+    display: block;
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 2px;
+    background-image: repeating-linear-gradient(90deg, var(--color-accent) 0 18px, transparent 18px 32px);
+    opacity: 0.55;
+  }
+
+  .app-header__row{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .app-header__title{
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(24px, 3vw, 32px);
+    letter-spacing: 0.04em;
+    margin: 0;
+    text-transform: uppercase;
+  }
+
+  .app-header__subtitle{
+    margin: 6px 0 0;
+    font-size: 13.5px;
+    color: #AEC0D6;
+    font-weight: 500;
+  }
+
+  .app-header__subtitle span{
+    color: #fff;
+    font-family: var(--font-mono);
+  }
+
+  /* ---------- BUTTONS ---------- */
+  .btn{
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 8px;
+    padding: 11px 18px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.12s ease, background 0.15s ease;
+  }
+
+  .btn:active{ transform: translateY(1px); }
+
+  .btn:focus-visible{
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+
+  .btn--primary{
+    background: var(--color-accent);
+    color: #241503;
+  }
+
+  .btn--primary:hover{ background: var(--color-accent-dark); }
+
+  .btn__icon{
+    width: 16px; height: 16px;
+    flex-shrink: 0;
+  }
+
+  /* ---------- TABS ---------- */
+  .tabs{
+    display: flex;
+    gap: 4px;
+    padding: 0 clamp(16px, 4vw, 48px);
+    background: var(--color-navy);
+    overflow-x: auto;
+  }
+
+  .tab{
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 14px;
+    color: #AEC0D6;
+    background: transparent;
+    border: none;
+    padding: 14px 18px 12px;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+  }
+
+  .tab:hover{ color: #fff; }
+
+  .tab.is-active{
+    color: #fff;
+    border-bottom-color: var(--color-accent);
+  }
+
+  .tab:focus-visible{
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+  }
+
+  /* ---------- MAIN ---------- */
+  .main{
+    padding: clamp(16px, 4vw, 40px);
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .panel{ display: none; }
+  .panel.is-active{ display: block; }
+
+  .toolbar{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .toolbar__group{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .toolbar__label{
+    font-size: 12.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+  }
+
+  .select{
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-text);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 9px 14px;
+    cursor: pointer;
+    min-width: 220px;
+  }
+
+  .select:focus-visible{
+    outline: 2px solid var(--color-navy-light);
+    outline-offset: 1px;
+  }
+
+  .meta-note{
+    font-size: 13px;
+    color: var(--color-text-muted);
+  }
+
+  /* ---------- CARD / TABLE ---------- */
+  .card{
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(16, 35, 63, 0.04);
+  }
+
+  .table-wrap{
+    overflow-x: auto;
+  }
+
+  table{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+
+  thead th{
+    text-align: left;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    background: #F7F8FA;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--color-border);
+    white-space: nowrap;
+  }
+
+  tbody td{
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--color-border);
+    white-space: nowrap;
+  }
+
+  tbody tr:last-child td{ border-bottom: none; }
+  tbody tr:hover td{ background: #FAFBFC; }
+
+  .cell-id, .cell-siglum{ font-family: var(--font-mono); font-size: 13px; }
+
+  .status{
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 4px 10px 4px 8px;
+    border-radius: 999px;
+  }
+
+  .status__dot{
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .status--completed{ background: var(--color-success-bg); color: #1D6B41; }
+  .status--completed .status__dot{ background: var(--color-success); box-shadow: 0 0 0 3px rgba(46,139,87,0.18); }
+
+  .status--pending{ background: var(--color-pending-bg); color: #8A5A08; }
+  .status--pending .status__dot{ background: var(--color-pending); box-shadow: 0 0 0 3px rgba(184,121,12,0.18); }
+
+  /* ---------- SUMMARY TABLE ---------- */
+  .summary-table th, .summary-table td{ text-align: right; }
+  .summary-table th:first-child, .summary-table td:first-child{
+    text-align: left;
+    position: sticky;
+    left: 0;
+    background: inherit;
+  }
+  .summary-table thead th:first-child{ background: #F7F8FA; }
+  .summary-table tbody tr:hover td:first-child{ background: #FAFBFC; }
+
+  .summary-table td:first-child{
+    font-weight: 700;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+  }
+
+  .summary-table .row-total td{ font-family: var(--font-mono); font-weight: 600; }
+  .summary-table .row-total td:first-child{ font-family: var(--font-body); }
+
+  .col-parent{ background: #F1F5FA; font-weight: 700; }
+
+  /* ---------- EMPTY STATE ---------- */
+  .empty-state{
+    padding: 60px 24px;
+    text-align: center;
+    color: var(--color-text-muted);
+  }
+
+  .empty-state__title{
+    font-family: var(--font-display);
+    font-size: 18px;
+    color: var(--color-text);
+    margin: 0 0 6px;
+  }
+
+  .empty-state__hint{
+    font-size: 13.5px;
+    max-width: 380px;
+    margin: 0 auto;
+  }
+
+  /* ---------- FOOTER ---------- */
+  .app-footer{
+    text-align: center;
+    padding: 24px;
+    font-size: 12.5px;
+    color: var(--color-text-muted);
+  }
+
+  @media (max-width: 620px){
+    .app-header__row{ flex-direction: column; }
+    .toolbar{ flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="app-header__row">
+    <div>
+      <h1 class="app-header__title">Mandatory Trainings</h1>
+      <p class="app-header__subtitle">Panel de formaciones obligatorias &middot; Última actualización: <span id="lastUpdated">—</span></p>
+    </div>
+    <div>
+      <input type="file" id="fileInput" accept=".xlsx,.xls" hidden>
+      <button class="btn btn--primary" id="uploadBtn" type="button">
+        <svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M6 10l6-6 6 6"/><path d="M4 20h16"/></svg>
+        Subir archivo Excel
+      </button>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="Vistas del informe">
+  <button class="tab is-active" role="tab" aria-selected="true" data-panel="panel-detail">Informe Detallado</button>
+  <button class="tab" role="tab" aria-selected="false" data-panel="panel-summary">Resumen por Siglum</button>
+</nav>
+
+<main class="main">
+
+  <!-- PANEL 1: INFORME DETALLADO -->
+  <section class="panel is-active" id="panel-detail">
+    <div class="toolbar">
+      <div class="toolbar__group">
+        <span class="toolbar__label">Curso</span>
+        <select class="select" id="courseSelectDetail"></select>
+      </div>
+      <span class="meta-note" id="detailCount"></span>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap" id="detailTableWrap"></div>
+    </div>
+  </section>
+
+  <!-- PANEL 2: RESUMEN POR SIGLUM -->
+  <section class="panel" id="panel-summary">
+    <div class="toolbar">
+      <div class="toolbar__group">
+        <span class="toolbar__label">Curso</span>
+        <select class="select" id="courseSelectSummary"></select>
+      </div>
+      <span class="meta-note">% Total = Completados / Población</span>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap" id="summaryTableWrap"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="app-footer">
+  Datos de ejemplo &middot; La carga real de archivos Excel se conecta en el Paso 3
+</footer>
+
+<script>
+/* =========================================================
+   DATOS DE EJEMPLO (estructura definida en el Paso 1)
+   Esto se sustituirá por los datos reales al conectar la
+   lectura de Excel en el Paso 3.
+   ========================================================= */
+const trainingData = {
+  lastUpdated: "2026-07-16",
+  courseList: ["FOD", "ESPACIOS CONFINADOS", "SAFETY CULTURE", "CRISIS MANAGEMENT", "AVIATION SAFETY", "HUMAN FACTORS"],
+  siglumGroups: {
+    "TAOA": ["TAOAA", "TAOAE", "TAOAF", "TAOAI", "TAOAP", "TAOAT", "TAOAX"]
+  },
+  employees: [
+    { employeeId: "10234", name: "Laura Gómez", siglum: "TAOAA", managerName: "Ana Ruiz",
+      courses: { "FOD": { initialTraining: { status: "Completed", date: "2022-03-14" }, mostRecent: { status: "Completed", date: "2025-04-02", courseName: "FOD Recurrent 2025" } } } },
+    { employeeId: "10871", name: "Marcos Iglesias", siglum: "TAOAE", managerName: "Pedro Salas",
+      courses: { "FOD": { initialTraining: { status: "Completed", date: "2021-11-09" }, mostRecent: { status: "Pending", date: null, courseName: null } } } },
+    { employeeId: "11045", name: "Beatriz Núñez", siglum: "TAOAF", managerName: "Carla Ortiz",
+      courses: { "FOD": { initialTraining: { status: "Pending", date: null }, mostRecent: { status: "Pending", date: null, courseName: null } } } },
+    { employeeId: "11322", name: "Iván Castro", siglum: "TAOAP", managerName: "Sofía León",
+      courses: { "FOD": { initialTraining: { status: "Completed", date: "2020-06-22" }, mostRecent: { status: "Completed", date: "2024-06-30", courseName: "FOD Recurrent 2024" } } } },
+    { employeeId: "11890", name: "Elena Vidal", siglum: "TAOAX", managerName: "Ana Ruiz",
+      courses: { "FOD": { initialTraining: { status: "Completed", date: "2023-01-17" }, mostRecent: { status: "Completed", date: "2025-01-20", courseName: "FOD Recurrent 2025" } } } }
+  ],
+  // Resumen precalculado de ejemplo, tal como lo indicaste (solo disponible para FOD por ahora)
+  summaryByCourse: {
+    "FOD": {
+      columns: ["TAOA(X)", "TAOA", "TAOAA", "TAOAE", "TAOAF", "TAOAI", "TAOAP", "TAOAT", "TAOAX"],
+      population: [291, 15, 99, 35, 41, 19, 4, 68, 10],
+      completed:  [277, 14, 94, 31, 37, 19, 4, 68, 10],
+      pending:    [14, 1, 5, 4, 4, 0, 0, 0, 0]
+    }
+  }
+};
+
+/* ---------- INIT ---------- */
+document.getElementById("lastUpdated").textContent = trainingData.lastUpdated;
+
+const detailSelect = document.getElementById("courseSelectDetail");
+const summarySelect = document.getElementById("courseSelectSummary");
+
+trainingData.courseList.forEach(course => {
+  detailSelect.appendChild(new Option(course, course));
+  summarySelect.appendChild(new Option(course, course));
+});
+
+/* ---------- TABS ---------- */
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(t => { t.classList.remove("is-active"); t.setAttribute("aria-selected", "false"); });
+    document.querySelectorAll(".panel").forEach(p => p.classList.remove("is-active"));
+    tab.classList.add("is-active");
+    tab.setAttribute("aria-selected", "true");
+    document.getElementById(tab.dataset.panel).classList.add("is-active");
+  });
+});
+
+/* ---------- STATUS BADGE HELPER ---------- */
+function statusBadge(status, date){
+  const isCompleted = status === "Completed";
+  const label = isCompleted ? "Completado" : "Pendiente";
+  const cls = isCompleted ? "status--completed" : "status--pending";
+  const dateLabel = date ? new Date(date).toLocaleDateString("es-ES") : "—";
+  return `<span class="status ${cls}"><span class="status__dot"></span>${label}</span></br><span style="color:var(--color-text-muted); font-size:12px;">${dateLabel}</span>`;
+}
+
+/* ---------- RENDER: INFORME DETALLADO ---------- */
+function renderDetailTable(course){
+  const wrap = document.getElementById("detailTableWrap");
+  const rows = trainingData.employees.filter(e => e.courses[course]);
+
+  document.getElementById("detailCount").textContent = rows.length
+    ? `${rows.length} empleados con datos para ${course}`
+    : "";
+
+  if(!rows.length){
+    wrap.innerHTML = `
+      <div class="empty-state">
+        <p class="empty-state__title">Todavía no hay datos para ${course}</p>
+        <p class="empty-state__hint">Sube el archivo Excel mensual con este curso para generar el informe detallado.</p>
+      </div>`;
+    return;
+  }
+
+  const body = rows.map(e => {
+    const c = e.courses[course];
+    return `
+      <tr>
+        <td>${e.name}</td>
+        <td class="cell-id">${e.employeeId}</td>
+        <td class="cell-siglum">${e.siglum}</td>
+        <td>${e.managerName}</td>
+        <td>${statusBadge(c.initialTraining.status, c.initialTraining.date)}</td>
+        <td>${statusBadge(c.mostRecent.status, c.mostRecent.date)}</td>
+        <td>${c.mostRecent.courseName ?? "—"}</td>
+      </tr>`;
+  }).join("");
+
+  wrap.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Employee ID</th>
+          <th>Siglum</th>
+          <th>User Manager Name</th>
+          <th>${course} Initial Training</th>
+          <th>Curso Más Reciente</th>
+          <th>Nombre del Curso</th>
+        </tr>
+      </thead>
+      <tbody>${body}</tbody>
+    </table>`;
+}
+
+/* ---------- RENDER: RESUMEN POR SIGLUM ---------- */
+function renderSummaryTable(course){
+  const wrap = document.getElementById("summaryTableWrap");
+  const data = trainingData.summaryByCourse[course];
+
+  if(!data){
+    wrap.innerHTML = `
+      <div class="empty-state">
+        <p class="empty-state__title">Todavía no hay resumen para ${course}</p>
+        <p class="empty-state__hint">El resumen por Siglum se calculará automáticamente al subir el archivo de este curso.</p>
+      </div>`;
+    return;
+  }
+
+  const headerCells = data.columns.map((c, i) =>
+    `<th class="${i === 1 ? 'col-parent' : ''}">${c}</th>`).join("");
+
+  function dataRow(label, values){
+    const cells = values.map((v, i) => `<td class="${i === 1 ? 'col-parent' : ''}">${v}</td>`).join("");
+    return `<tr><td>${label}</td>${cells}</tr>`;
+  }
+
+  const totalPct = data.population.map((pop, i) => ((data.completed[i] / pop) * 100).toFixed(2).replace(".", ",") + "%");
+
+  wrap.innerHTML = `
+    <table class="summary-table">
+      <thead><tr><th></th>${headerCells}</tr></thead>
+      <tbody>
+        ${dataRow("Population", data.population)}
+        ${dataRow("Completed", data.completed)}
+        ${dataRow("Pending", data.pending)}
+        <tr class="row-total">${dataRow("Total", totalPct)}</tr>
+      </tbody>
+    </table>`;
+}
+
+/* ---------- EVENTS ---------- */
+detailSelect.addEventListener("change", e => renderDetailTable(e.target.value));
+summarySelect.addEventListener("change", e => renderSummaryTable(e.target.value));
+
+/* ---------- UPLOAD BUTTON (placeholder — se conecta en el Paso 3) ---------- */
+document.getElementById("uploadBtn").addEventListener("click", () => {
+  document.getElementById("fileInput").click();
+});
+document.getElementById("fileInput").addEventListener("change", () => {
+  alert("La lectura del Excel se conectará en el Paso 3. Por ahora este botón es solo visual.");
+});
+
+/* ---------- FIRST RENDER ---------- */
+renderDetailTable(trainingData.courseList[0]);
+renderSummaryTable(trainingData.courseList[0]);
+</script>
+
+</body>
+</html>
