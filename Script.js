@@ -391,8 +391,10 @@ function findDetailColumns(rows){
 
   const headerRow = rows[headerRowIndex];
   const findFirst = predicate => headerRow.findIndex(c => predicate(normalizeHeader(c)));
-  const findAll = target => headerRow.reduce((acc, c, i) => {
-    if(normalizeHeader(c) === target) acc.push(i);
+
+  const findAllContaining = (...targets) => headerRow.reduce((acc, c, i) => {
+    const n = normalizeHeader(c);
+    if(targets.some(t => n.includes(t))) acc.push(i);
     return acc;
   }, []);
 
@@ -406,8 +408,11 @@ function findDetailColumns(rows){
     courseName: findFirst(n => n.includes("nombre del curso"))
   };
 
-  const statusCols = findAll("estado").length ? findAll("estado") : findAll("status");
-  const dateCols = findAll("fecha").length ? findAll("fecha") : findAll("date");
+  // Búsqueda flexible: cubre "Estado"/"Status" y "Fecha"/"Date"/
+  // "Completed date" (algunos cursos usan una etiqueta distinta
+  // para la columna de fecha, no siempre literalmente "Fecha").
+  const statusCols = findAllContaining("estado", "status");
+  const dateCols = findAllContaining("fecha", "date");
 
   if(cols.employeeId === -1 || cols.siglum === -1 || statusCols.length < 1 || dateCols.length < 1){
     return null;
