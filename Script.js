@@ -176,9 +176,13 @@ function renderDetailTable(course){
     return;
   }
 
+  // Los cursos sin "recurrente" (p.ej. Human Factors) solo tienen un Estado.
+  // Miramos el primer registro para decidir cómo pintar las columnas.
+  const hasRecurrent = rows[0].courses[course].hasRecurrent !== false;
+
   const body = rows.map(e => {
     const c = e.courses[course];
-    return `
+    return hasRecurrent ? `
       <tr>
         <td>${e.name}</td>
         <td class="cell-id">${e.employeeId}</td>
@@ -187,8 +191,19 @@ function renderDetailTable(course){
         <td>${statusBadge(c.initialTraining.status, c.initialTraining.date)}</td>
         <td>${statusBadge(c.mostRecent.status, c.mostRecent.date)}</td>
         <td>${c.mostRecent.courseName ?? "—"}</td>
+      </tr>` : `
+      <tr>
+        <td>${e.name}</td>
+        <td class="cell-id">${e.employeeId}</td>
+        <td class="cell-siglum">${e.siglum}</td>
+        <td>${e.managerName}</td>
+        <td>${statusBadge(c.mostRecent.status, c.mostRecent.date)}</td>
       </tr>`;
   }).join("");
+
+  const extraHeaders = hasRecurrent
+    ? `<th>${course} Initial Training</th><th>Curso Más Reciente</th><th>Nombre del Curso</th>`
+    : `<th>Estado</th>`;
 
   wrap.innerHTML = `
     <table>
@@ -198,9 +213,7 @@ function renderDetailTable(course){
           <th>Employee ID</th>
           <th>Siglum</th>
           <th>User Manager Name</th>
-          <th>${course} Initial Training</th>
-          <th>Curso Más Reciente</th>
-          <th>Nombre del Curso</th>
+          ${extraHeaders}
         </tr>
       </thead>
       <tbody>${body}</tbody>
@@ -396,15 +409,20 @@ function findDetailColumns(rows){
   const statusCols = findAll("estado").length ? findAll("estado") : findAll("status");
   const dateCols = findAll("fecha").length ? findAll("fecha") : findAll("date");
 
-  if(cols.employeeId === -1 || cols.siglum === -1 || statusCols.length < 2 || dateCols.length < 2){
+  if(cols.employeeId === -1 || cols.siglum === -1 || statusCols.length < 1 || dateCols.length < 1){
     return null;
   }
 
+  /* Algunos cursos (p.ej. Human Factors) solo tienen UN estado,
+     sin distinción Initial Training / Curso Más Reciente. En ese
+     caso usamos la misma columna para ambos y lo marcamos con
+     hasRecurrent = false, para que la tabla no muestre 2 columnas
+     idénticas. */
+  cols.hasRecurrent = statusCols.length > 1 && dateCols.length > 1;
   cols.statusInitial = statusCols[0];
   cols.dateInitial = dateCols[0];
-  cols.statusRecent = statusCols[1];
-  cols.dateRecent = dateCols[1];
-  if(cols.courseName === -1) cols.courseName = headerRow.length - 1;
+  cols.statusRecent = cols.hasRecurrent ? statusCols[1] : statusCols[0];
+  cols.dateRecent = cols.hasRecurrent ? dateCols[1] : dateCols[0];
 
   return { headerRowIndex, cols };
 }
@@ -463,11 +481,12 @@ function extractEmployeeRows(rows, headerRowIndex, cols){
       name,
       siglum: row[cols.siglum] ? String(row[cols.siglum]).trim() : null,
       managerName: cols.manager > -1 ? row[cols.manager] : null,
+      hasRecurrent: cols.hasRecurrent,
       initialStatus: classifyStatus(row[cols.statusInitial]),
       initialDate: formatDateCell(row[cols.dateInitial]),
       recentStatus: classifyStatus(row[cols.statusRecent]),
       recentDate: formatDateCell(row[cols.dateRecent]),
-      courseName: row[cols.courseName] || null
+      courseName: cols.courseName > -1 ? (row[cols.courseName] || null) : null
     });
   }
   return out;
@@ -487,6 +506,7 @@ function mergeEmployees(course, parsedRows){
       emp.managerName = p.managerName || emp.managerName;
     }
     emp.courses[course] = {
+      hasRecurrent: p.hasRecurrent,
       initialTraining: { status: p.initialStatus, date: p.initialDate },
       mostRecent: { status: p.recentStatus, date: p.recentDate, courseName: p.courseName }
     };
@@ -507,7 +527,7 @@ function findPrecomputedSummary(rows){
     if(rowLabelIndex(row, "completed") > -1) compRow = i;
     if(rowLabelIndex(row, "pending") > -1) pendRow = i;
   });
-  if(popRow === -1 || compRow === -1 || pendRow === -1) return null;
+  if(popRow === -1 || compRow === -1) return null; // PENDING es opcional: si falta, se calcula
 
   let headerRowIdx = -1;
   for(let i = popRow - 1; i >= 0; i--){
@@ -522,17 +542,18 @@ function findPrecomputedSummary(rows){
   const headerCells = rows[headerRowIdx];
   const popCells = rows[popRow];
   const compCells = rows[compRow];
-  const pendCells = rows[pendRow];
+  const pendCells = pendRow > -1 ? rows[pendRow] : null;
 
   const columns = [], population = [], completed = [], pending = [];
   headerCells.forEach((cell, i) => {
     if(cell === null || String(cell).trim() === "") return;
     const pop = Number(popCells[i]);
     if(isNaN(pop)) return;
+    const comp = Number(compCells[i]) || 0;
     columns.push(String(cell).trim());
     population.push(pop);
-    completed.push(Number(compCells[i]) || 0);
-    pending.push(Number(pendCells[i]) || 0);
+    completed.push(comp);
+    pending.push(pendCells ? (Number(pendCells[i]) || 0) : (pop - comp));
   });
 
   return columns.length ? { columns, population, completed, pending } : null;
@@ -597,6 +618,24 @@ function showUploadFeedback(msg, type){
   el.hidden = false;
 }
 
+/* Detecta el mes (y el año, si aparece) a partir del NOMBRE del
+   archivo, buscando "ene", "feb", "mar"... como palabra suelta
+   (mayúsculas o minúsculas, con o sin tilde). Si no encuentra
+   nada, devuelve month/year = null y se usa lo que haya
+   seleccionado a mano en los desplegables. */
+const MONTH_ABBR = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+
+function detectMonthYearFromFilename(filename){
+  const name = normalizeHeader(filename);
+  let month = null;
+  for(let i = 0; i < MONTH_ABBR.length; i++){
+    const re = new RegExp(`(^|[^a-z])${MONTH_ABBR[i]}([^a-z]|$)`);
+    if(re.test(name)){ month = i + 1; break; }
+  }
+  const yearMatch = name.match(/(19|20)\d{2}/);
+  return { month, year: yearMatch ? yearMatch[0] : null };
+}
+
 /* Guarda en el histórico el % Total del curso para un mes/año
    concretos, usando la columna de gran total (la 1ª, p.ej.
    "TAOA(X)") de trainingData.summaryByCourse[course]. */
@@ -626,7 +665,15 @@ document.getElementById("fileInput").addEventListener("change", async e => {
   if(!file) return;
   const course = uploadSelect.value;
 
-  showUploadFeedback(`Procesando "${file.name}" para ${course}...`, "info");
+  const detected = detectMonthYearFromFilename(file.name);
+  let dateNote = `${MONTH_NAMES[Number(uploadMonthSelect.value) - 1]} ${uploadYearInput.value} (seleccionado a mano)`;
+  if(detected.month){
+    uploadMonthSelect.value = String(detected.month).padStart(2, "0");
+    if(detected.year) uploadYearInput.value = detected.year;
+    dateNote = `${MONTH_NAMES[detected.month - 1]} ${uploadYearInput.value} (detectado del nombre del archivo)`;
+  }
+
+  showUploadFeedback(`Procesando "${file.name}" para ${course} · ${dateNote}...`, "info");
 
   try{
     const sheets = await readWorkbook(file);
@@ -672,7 +719,7 @@ document.getElementById("fileInput").addEventListener("change", async e => {
     const parts = [];
     if(importedCount) parts.push(`${importedCount} empleados`);
     parts.push(summaryData ? "resumen oficial de la hoja" : (detailInfo ? "resumen recalculado" : ""));
-    showUploadFeedback(`✔ ${course} actualizado: ${parts.filter(Boolean).join(" · ")} · guardado en histórico de ${MONTH_NAMES[Number(uploadMonthSelect.value) - 1]} ${uploadYearInput.value} (desde "${file.name}").`, "success");
+    showUploadFeedback(`✔ ${course} actualizado: ${parts.filter(Boolean).join(" · ")} · guardado en histórico de ${dateNote} (desde "${file.name}").`, "success");
   }catch(err){
     console.error(err);
     showUploadFeedback(`Error al leer el archivo: ${err.message}`, "error");
