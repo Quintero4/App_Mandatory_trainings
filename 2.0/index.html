@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mandatory Trainings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="app-header__row">
+    <div>
+      <h1 class="app-header__title">Mandatory Trainings</h1>
+      <p class="app-header__subtitle">Panel de formaciones obligatorias &middot; Última actualización: <span id="lastUpdated">—</span></p>
+    </div>
+    <div class="upload-group">
+      <div>
+        <label class="upload-group__label" for="courseSelectUpload">Curso</label>
+        <select class="select select--dark" id="courseSelectUpload"></select>
+      </div>
+      <div>
+        <label class="upload-group__label" for="uploadMonth">Mes del informe</label>
+        <select class="select select--dark" id="uploadMonth"></select>
+      </div>
+      <div>
+        <label class="upload-group__label" for="uploadYear">Año</label>
+        <input class="select select--dark input-year" id="uploadYear" type="number" min="2020" max="2100">
+      </div>
+      <input type="file" id="fileInput" accept=".xlsx,.xls" hidden>
+      <button class="btn btn--primary" id="uploadBtn" type="button">
+        <svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M6 10l6-6 6 6"/><path d="M4 20h16"/></svg>
+        Subir archivo Excel
+      </button>
+      <input type="file" id="importInput" accept=".json" hidden>
+      <button class="btn btn--secondary" id="importBtn" type="button" title="Cargar una copia de seguridad .json">
+        <svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+        Importar copia
+      </button>
+      <button class="btn btn--secondary" id="exportBtn" type="button" title="Descargar toda la base de datos como .json">
+        <svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12"/><path d="M6 10l6 6 6-6"/><path d="M4 20h16"/></svg>
+        Exportar copia
+      </button>
+    </div>
+  </div>
+</header>
+
+<div id="uploadFeedback" class="upload-feedback" hidden></div>
+
+<nav class="tabs" role="tablist" aria-label="Vistas del informe">
+  <button class="tab is-active" role="tab" aria-selected="true" data-panel="panel-detail">Informe Detallado</button>
+  <button class="tab" role="tab" aria-selected="false" data-panel="panel-summary">Resumen por Siglum</button>
+</nav>
+
+<main class="main">
+
+  <!-- PANEL 1: INFORME DETALLADO -->
+  <section class="panel is-active" id="panel-detail">
+    <div class="toolbar">
+      <div class="toolbar__group">
+        <span class="toolbar__label">Curso</span>
+        <select class="select" id="courseSelectDetail"></select>
+      </div>
+      <div class="toolbar__group" id="subgroupFilterGroup" hidden>
+        <span class="toolbar__label">Subgrupo</span>
+        <select class="select" id="subgroupSelectDetail"></select>
+      </div>
+      <div class="toolbar__group toolbar__group--filters">
+        <input class="input-search" id="searchInput" type="text" placeholder="Buscar por nombre o siglum...">
+        <select class="select" id="statusFilter">
+          <option value="all">Todos los estados</option>
+          <option value="Completed">Completado</option>
+          <option value="Expired">Caducado</option>
+          <option value="Pending">Pendiente</option>
+          <option value="Exempt">Exento</option>
+        </select>
+      </div>
+      <span class="meta-note" id="detailCount"></span>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap" id="detailTableWrap"></div>
+    </div>
+  </section>
+
+  <!-- PANEL 2: RESUMEN POR SIGLUM -->
+  <section class="panel" id="panel-summary">
+    <div class="toolbar">
+      <div class="toolbar__group">
+        <span class="toolbar__label">Curso</span>
+        <select class="select" id="courseSelectSummary"></select>
+      </div>
+      <span class="meta-note">% Total = Completados / Población</span>
+    </div>
+
+    <div id="summaryBlocksContainer"></div>
+  </section>
+
+</main>
+
+<footer class="app-footer">
+  <span id="storageStatus">Los datos se guardan automáticamente en este navegador.</span>
+  &middot; <button class="link-danger" id="resetBtn" type="button">Borrar todos los datos guardados</button>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
