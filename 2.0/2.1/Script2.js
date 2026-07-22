@@ -1155,6 +1155,8 @@ function buildSummaryExportHtml(payload){
     'REPORT.courses.forEach(function(c){',
     '  var section = document.createElement("section");',
     '  section.className = "course-section";',
+    '  section.dataset.course = c.course;',
+    '  section.style.display = "none";',
     '  section.innerHTML = "<h2 class=\\"course-section__title\\">" + c.course + "</h2>";',
     '  c.blocks.forEach(function(block){',
     '    var years = yearsFor(block.history);',
@@ -1178,7 +1180,18 @@ function buildSummaryExportHtml(payload){
     '    yearSelect.addEventListener("change", function(){ renderChart(c.course, block, canvas, yearSelect.value); });',
     '  });',
     '  main.appendChild(section);',
-    '});'
+    '});',
+    '',
+    'var picker = document.getElementById("courseSelect");',
+    'REPORT.courses.forEach(function(c){ picker.appendChild(new Option(c.course, c.course)); });',
+    'function showCourse(name){',
+    '  document.querySelectorAll(".course-section").forEach(function(s){ s.style.display = (s.dataset.course === name) ? "" : "none"; });',
+    '}',
+    'if(REPORT.courses.length){',
+    '  picker.value = REPORT.courses[0].course;',
+    '  showCourse(picker.value);',
+    '}',
+    'picker.addEventListener("change", function(){ showCourse(picker.value); });'
   ].join("\n")
     .replace("__REPORT_JSON__", safeJson)
     .replace("__MONTH_NAMES_JSON__", JSON.stringify(MONTH_NAMES));
@@ -1229,6 +1242,9 @@ tbody tr.row-total td:first-child{font-family:var(--font-body);}
 .empty{padding:60px 24px;text-align:center;color:var(--color-text-muted);}
 footer{text-align:center;padding:24px;font-size:12px;color:var(--color-text-muted);}
 @media (max-width:620px){ .course-section__title{font-size:18px;} }
+.course-picker{display:flex;padding:16px clamp(16px,4vw,48px) 0;max-width:1100px;margin:0 auto;align-items:center;gap:10px;}
+.course-picker label{font-size:12.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-muted);}
+.course-picker select{font-family:var(--font-body);font-weight:600;font-size:14px;padding:9px 14px;border-radius:8px;border:1px solid var(--color-border);background:#fff;cursor:pointer;min-width:240px;}
 </style>
 </head>
 <body>
@@ -1236,6 +1252,10 @@ footer{text-align:center;padding:24px;font-size:12px;color:var(--color-text-mute
   <h1>Mandatory Training</h1>
   <p>Situación a fecha de la última actualización: <strong style="color:#fff;">${monthLabel}</strong> · Exportado el ${generatedLabel}</p>
 </header>
+<div class="course-picker">
+  <label for="courseSelect">Curso</label>
+  <select id="courseSelect"></select>
+</div>
 <main id="reportMain"></main>
 <footer>Exportado automáticamente desde el panel de Mandatory Trainings · No incluye datos individuales de empleados.</footer>
 <script>
